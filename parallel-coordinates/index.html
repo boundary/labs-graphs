@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Multidimensional Query - Parallel Coordinates</title>
+        
+
+  <script type="text/javascript" src="../lib/jquery.js"></script>
+  <script type="text/javascript" src="../lib/underscore.js"></script>
+  <script type="text/javascript" src="../lib/backbone.js"></script>
+
+  <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="parallel-coordinates.js"></script>
+
+  <!-- SlickGrid -->
+  <link rel="stylesheet" href="../lib/slickgrid/slick.grid.css" type="text/css" media="screen" charset="utf-8" />
+  <script src="../lib/slickgrid/jquery.event.drag-2.0.min.js"></script>
+  <script src="../lib/slickgrid/slick.core.js"></script>
+  <script src="../lib/slickgrid/slick.grid.js"></script>
+  <script src="../lib/slickgrid/slick.dataview.js"></script>
+  <script src="../lib/slickgrid/slick.pager.js"></script>
+  <script src="grid.js"></script>
+
+  <style type="text/css">
+    body {
+      font-family: "Lucida Grande", arial, helvetica, clean, sans-serif;
+      font-size: 13px;
+      line-height: 1.35em;
+    }
+    #main {
+      width: 760px;
+      margin: 0 auto;
+    }
+    /*SlickGrid */
+    .slick-header-column {
+      font-weight:bold;
+      border-right: none !important;
+    }
+    .slick-cell {
+      border: none !important;
+    }
+    .slick-row.odd {
+      background: rgba(0,0,0,0.03);
+    }
+    .slick-row {
+      height: 20px !important;
+    }
+
+    /* Parallel Coordinates */
+    .ui-resizable-handle {
+      position: absolute;
+      font-size: 0.1px;
+      z-index: 99999;
+      display: block;
+    }
+    .ui-resizable-n {
+      cursor: n-resize;
+      top: -5px;
+    }
+    .ui-resizable-s {
+      cursor: s-resize;
+      bottom: -5px;
+    }
+    .ui-resizable-s,
+    .ui-resizable-n {
+      height: 8px;
+      width: 16px;
+      left: -2px;
+      border-radius: 2px;
+    }
+    #parallel-coordinates {
+      position: relative;
+    }
+    #parallel-coordinates canvas {
+      position: absolute;
+    }
+    #parallel-coordinates span.scrubber {
+      position: absolute;
+      display: block;
+      width: 12px;
+      cursor: move;
+    }
+    #parallel-coordinates span.scrubber span {
+      background: rgba(0, 0, 0, 0.05);
+      display: block;
+      width: 12px;
+      left: 1px;
+    }
+    #parallel-coordinates span.scrubber span:hover,
+    #parallel-coordinates span.scrubber span.active {
+      background: hsla(42,90%,60%,0.3);
+    }
+    .scrubber:hover .ui-resizable-n ,
+    .scrubber:hover .ui-resizable-s {
+      background: hsla(0,00%,40%,1);
+    }
+    .scrubber .ui-resizable-n:hover ,
+    .scrubber .ui-resizable-s:hover {
+      background: hsla(0,00%,20%,1);
+    }
+    #parallel-coordinates span.scrubber .ui-resizable-n {
+      top: 0px;
+    }
+    #parallel-coordinates span.scrubber .ui-resizable-s {
+      bottom: 0px;
+    }
+
+
+  </style>
+</head>
+
+<body>
+
+<div id="main">
+  <h2>Constraint</h2>
+  <div id="parallel-coordinates">
+  </div>
+  <div style="width:760px;">
+      <div id="pager" style="width:100%;height:20px;"></div>
+      <div id="myGrid" style="width:100%;height:500px;"></div>
+  </div>
+  <script type="text/javascript">
+
+  var data = [];
+  _(_.range(0,1000)).each(function(i) {
+    data[i] = {
+      one: Math.round(60*Math.random()),
+      two: Math.round(20*Math.random()+i*0.02),
+      three: Math.round(3*Math.random()),
+      four: Math.round(5*Math.random())
+    }
+  });
+
+  var parallel = new parallel_coordinates ({
+    title: 'Multidimensional Query - Parallel Coordinates',
+    el: document.getElementById('parallel-coordinates'),
+    columns: [
+      'one',
+      'two',
+      'three',
+      'four'
+    ],
+    alias: {
+      'one': 'One',
+      'two': 'Two',
+      'three': 'Three',
+      'four': 'Four'
+    },
+    width: 760,
+    height: 300,
+    gutter: { x: 50, y: 50 },
+  });
+
+  var slicky = new grid({
+    width: 760,
+    controller: parallel,
+    columns: [
+      'one',
+      'two',
+      'three',
+      'four'
+    ],
+    alias: {
+      'one': 'One',
+      'two': 'Two',
+      'three': 'Three',
+      'four': 'Four'
+    },
+  });
+
+  parallel.update(data);
+
+  </script>
+</div>
+
+</body>
+</html>
