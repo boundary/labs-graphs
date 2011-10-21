@@ -3,7 +3,7 @@
 
 <head>
   <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-  <title>Multidimensional Query - Parallel Coordinates</title>
+  <title>Parallel Coordinates</title>
         
 
   <script type="text/javascript" src="../lib/jquery.js"></script>
@@ -11,6 +11,7 @@
   <script type="text/javascript" src="../lib/backbone.js"></script>
 
   <script src="../lib/jquery-ui-1.8.11.custom.min.js"></script>
+  <script type="text/javascript" src="filter.js"></script>
   <script type="text/javascript" src="parallel-coordinates.js"></script>
 
   <!-- SlickGrid -->
@@ -113,7 +114,7 @@
 <body>
 
 <div id="main">
-  <h2>Constraint</h2>
+  <h2>Parallel Coordinates</h2>
   <p>Drag gray handles to constrain filters.<br/>Drag yellow ranges to move filters.<br/>The data table below will update automatically, displaying the filtered dataset.</p>
   <div id="parallel-coordinates">
   </div>
@@ -124,29 +125,35 @@
   <script type="text/javascript">
 
   var data = [];
-  _(_.range(0,1000)).each(function(i) {
+  _(_.range(0,2000)).each(function(i) {
     data[i] = {
       one: Math.round(60*Math.random()),
       two: Math.round(20*Math.random()+i*0.02),
       three: Math.round(3*Math.random()),
-      four: Math.round(5*Math.random())
+      four: Math.round(5*Math.random()),
+      five: Math.round(300*Math.random())
     }
   });
 
-  var parallel = new parallel_coordinates ({
+  var dimensions = new Filter();
+
+  var parallel = new Parallel_coordinates ({
     title: 'Multidimensional Query - Parallel Coordinates',
+    model: dimensions,
     el: document.getElementById('parallel-coordinates'),
     columns: [
       'one',
       'two',
       'three',
-      'four'
+      'four',
+      'five'
     ],
     alias: {
       'one': 'One',
       'two': 'Two',
       'three': 'Three',
-      'four': 'Four'
+      'four': 'Four',
+      'five': 'Five'
     },
     width: 760,
     height: 300,
@@ -154,23 +161,30 @@
   });
 
   var slicky = new grid({
+    model: dimensions,
     width: 760,
-    controller: parallel,
     columns: [
       'one',
       'two',
       'three',
-      'four'
+      'four',
+      'five'
     ],
     alias: {
       'one': 'One',
       'two': 'Two',
       'three': 'Three',
-      'four': 'Four'
+      'four': 'Four',
+      'five': 'Five'
     },
   });
 
-  parallel.update(data);
+  dimensions.set({data: data});
+
+  dimensions.bind('change:filtered', function() {
+    parallel.update();    
+  });
+  parallel.update();
 
   </script>
 </div>

@@ -1,4 +1,4 @@
-(function($, undefined) {
+(function(undefined) {
 
   window.grid = Backbone.View.extend({
 
@@ -7,7 +7,7 @@
       for (var k in options) {
         this[k] = options[k];
       }
-      this.controller.emit = function() { self.update(self.data)};
+      this.model.bind('change:filtered', function() { self.update()});
       this.cols = _(this.columns).map(function(col) {
         return {
           id: col,
@@ -22,80 +22,57 @@
         enableColumnReorder: false
       };
 
-      this.initialized = false;
-      this.fresh_data = true;
       this.dataView = new Slick.Data.DataView();
       this.selectedRowIds = [];
       this.grid = new Slick.Grid("#myGrid", this.dataView, this.cols, this.options);
-      this.data = {};
-    },
-    update: function(data) {
-      var self = this;
+      this.counter = 0;
 
-      if (this.controller) {
-        this.data = this.controller.applyFilter(this.controller.data);
-      } else {
-        this.data = data;
-      }
+      var pager = new Slick.Controls.Pager(this.dataView, this.grid, $("#pager"));
 
-      if (!this.initialized) {
-        this.initialized = true;
-        this.counter = 0;
+      this.dataView.onRowCountChanged.subscribe(function(e,args) {
+        self.grid.updateRowCount();
+        self.grid.render();
+      });
 
-        var pager = new Slick.Controls.Pager(this.dataView, this.grid, $("#pager"));
+      this.dataView.onRowsChanged.subscribe(function(e,args) {
+        self.grid.invalidateRows(args.rows);
+        self.grid.render();
 
-        this.dataView.onRowCountChanged.subscribe(function(e,args) {
-          self.grid.updateRowCount();
-          self.grid.render();
-        });
-
-        this.dataView.onRowsChanged.subscribe(function(e,args) {
-          self.grid.invalidateRows(args.rows);
-          self.grid.render();
-
-          if (self.selectedRowIds.length > 0)
+        if (self.selectedRowIds.length > 0) {
+          // since how the original data maps onto rows has changed,
+          // the selected rows in the grid need to be updated
+          var selRows = [];
+          for (var i = 0; i < self.selectedRowIds.length; i++)
           {
-            // since how the original data maps onto rows has changed,
-            // the selected rows in the grid need to be updated
-            var selRows = [];
-            for (var i = 0; i < self.selectedRowIds.length; i++)
-            {
-              var idx = self.dataView.getRowById(self.selectedRowIds[i]);
-              if (idx != undefined)
-                selRows.push(idx);
-            }
-
-            self.grid.setSelectedRows(selRows);
+            var idx = self.dataView.getRowById(self.selectedRowIds[i]);
+            if (idx != undefined)
+              selRows.push(idx);
           }
-        });
 
-        this.dataView.onPagingInfoChanged.subscribe(function(e,pagingInfo) {
-          var isLastPage = pagingInfo.pageSize*(pagingInfo.pageNum+1)-1 >= pagingInfo.totalRows;
-          var enableAddRow = isLastPage || pagingInfo.pageSize==0;
-          var options = self.grid.getOptions();
+          self.grid.setSelectedRows(selRows);
+        }
+      });
 
-          if (options.enableAddRow != enableAddRow)
-            self.grid.setOptions({enableAddRow:enableAddRow});
-        });
-      } else {
-        this.fresh_data = true;
-      }
+      this.dataView.onPagingInfoChanged.subscribe(function(e,pagingInfo) {
+        var isLastPage = pagingInfo.pageSize*(pagingInfo.pageNum+1)-1 >= pagingInfo.totalRows;
+        var enableAddRow = isLastPage || pagingInfo.pageSize==0;
+        var options = self.grid.getOptions();
 
-      this.gridUpdate();
+        if (options.enableAddRow != enableAddRow)
+          self.grid.setOptions({enableAddRow:enableAddRow});
+      });
+
     },
-    gridUpdate: function() {
+    update: function() {
       var self = this;
-      if (this.fresh_data) {
-        var data = _(this.data).map(function(obj) {
-          obj.id = self.counter++;
-          return obj;
-        });
-        this.dataView.beginUpdate();
-        this.dataView.setItems(data);
-        this.dataView.endUpdate();
-        this.fresh_data = false;
-      }
+      var data = _(this.model.get('filtered')).map(function(obj) {
+        obj.id = self.counter++;
+        return obj;
+      });
+      this.dataView.beginUpdate();
+      this.dataView.setItems(data);
+      this.dataView.endUpdate();
     }
   });
 
-})(jQuery);
+})();

@@ -1,9 +1,7 @@
 (function($, undefined) {
 
-  window.parallel_coordinates = Backbone.View.extend({
-
+  window.Parallel_coordinates = Backbone.View.extend({
     render: function() {
-
       var self = this;
 
       this.canvas = {};
@@ -37,7 +35,6 @@
           },
           drag: function(e, ui) {
             self.addFilter(self.getColumnRange(this, self));
-            self.update(self.data);
           },
           stop: function(e, ui) {
             $(this).removeClass('active');
@@ -53,7 +50,6 @@
           },
           resize: function(e, ui) {
             var range = self.getColumnRange(this, self);
-            //ctx.font = "12px Helvetica";
             var x = _(self.cols).detect(function(col) { return col.col == range.field; }).x;
           },
           stop: function(e, ui) {
@@ -92,34 +88,10 @@
     },
     
     addFilter: function(filter) {
-      //console.log(filter.field, filter.min, filter.max);
-      this.filter[filter.field] = {
-        min: filter.min,
-        max: filter.max
-      };
-      //console.log(this.filter);
-      this.update(this.data);
+      this.model.add(filter);
     },
 
-    applyFilter: function(data) {
-      var self = this;
-      return _(data).filter(function(d,k) {
-        var included = true;
-        _(self.filter).each(function(filter, col) {
-          if ((d[col] <= filter.min) || (d[col] >= filter.max))
-            included = false;
-        });
-        return included;
-      });
-    },
-
-    update: function(data) {
-      this.data = data;
-      if (this.emit) {
-        //hack
-        this.emit();
-      }
-
+    update: function() {
       var self = this,
           ctx = this.canvas.ctx,
           cols = this.columns,
@@ -128,14 +100,9 @@
           h = this.height,
           alias = this.alias;
 
-      if (this.active) {
-        //return;
-      }
-      
-      //console.log('data', _(data).size());
-      var filtered = this.applyFilter(data);
+      var data = this.model.get('data');
+      var filtered = this.model.get('filtered');
       this.size = filtered.length;
-      //console.log('filtered', filtered.length);
       this.cols = [];
 
       var line_stroke = this.lineStroke || "hsla(0,00%,30%," + (1/Math.sqrt(this.size)) + ")";
