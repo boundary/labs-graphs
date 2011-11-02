@@ -42,6 +42,13 @@
           "rel": this.columns[i],
           "style": 'height: ' + (this.height-((this.gutter.y-10)*2)) + 'px'
         }));
+        $(cheese).hover(function() {
+          self.coloring = $(this).attr('rel');
+          self.update();
+        }, function() {
+          self.coloring = false;
+          self.update();
+        });
         $(cheese).draggable({
           containment: $(s),
           axis: 'y',
@@ -121,7 +128,8 @@
       this.size = filtered.length;
       this.cols = [];
 
-      var line_stroke = this.lineStroke || "hsla(0,00%,30%," + (1/Math.sqrt(this.size)) + ")";
+      if (!self.coloring)
+        var line_stroke = this.lineStroke || "hsla(0,00%,30%," + (1/Math.sqrt(this.size)) + ")";
       var text_fill = this.textFill || "#222";
       ctx.clearRect(0, 0, w, h);
 
@@ -166,8 +174,16 @@
         }
       };
 
-      ctx.strokeStyle = line_stroke;
+      if (line_stroke)
+        ctx.strokeStyle = line_stroke;
+
       _(filtered).each(function(d,k) {
+        if (self.coloring) {
+          var frac = Math.round(200*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
+
+          ctx.strokeStyle = "hsla(" + frac + ",70%,45%," + (3/Math.sqrt(self.size)) + ")";
+        }
+
         ctx.beginPath();
         var x0 = 0;
         var y0 = 0;
