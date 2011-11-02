@@ -22,98 +22,8 @@
   <script src="../lib/slickgrid/slick.dataview.js"></script>
   <script src="../lib/slickgrid/slick.pager.js"></script>
   <script src="grid.js"></script>
+  <link rel="stylesheet" href="style.css" type="text/css" charset="utf-8" />
 
-  <style type="text/css">
-    body {
-      font-family: "Lucida Grande", arial, helvetica, clean, sans-serif;
-      font-size: 13px;
-      line-height: 1.35em;
-    }
-    #main {
-      width: 760px;
-      margin: 0 auto;
-    }
-    /*SlickGrid */
-    .slick-header-column {
-      font-weight:bold;
-      border-right: none !important;
-    }
-    .slick-cell {
-      border: none !important;
-    }
-    .slick-row.odd {
-      background: rgba(0,0,0,0.03);
-    }
-    .slick-row {
-      height: 20px !important;
-    }
-
-    /* Parallel Coordinates */
-    .ui-resizable-handle {
-      position: absolute;
-      font-size: 0.1px;
-      z-index: 99999;
-      display: block;
-    }
-    .ui-resizable-n {
-      cursor: n-resize;
-      top: -5px;
-    }
-    .ui-resizable-s {
-      cursor: s-resize;
-      bottom: -5px;
-    }
-    .ui-resizable-s,
-    .ui-resizable-n {
-      height: 8px;
-      width: 16px;
-      left: -2px;
-      border-radius: 2px;
-    }
-    #parallel-coordinates {
-      position: relative;
-    }
-    #parallel-coordinates canvas {
-      position: absolute;
-    }
-    #parallel-coordinates span.scrubber {
-      position: absolute;
-      display: block;
-      width: 12px;
-      cursor: move;
-    }
-    #parallel-coordinates span.scrubber span {
-      background: rgba(0, 0, 0, 0.05);
-      display: block;
-      width: 12px;
-      left: 1px;
-    }
-    #parallel-coordinates span.scrubber span:hover,
-    #parallel-coordinates span.scrubber span.active {
-      background: hsla(42,90%,60%,0.3);
-    }
-    .scrubber .active .ui-resizable-n,
-    .scrubber .active .ui-resizable-s,
-    .scrubber:hover .ui-resizable-n ,
-    .scrubber:hover .ui-resizable-s {
-      background: hsla(0,00%,60%,1);
-    }
-    .scrubber .ui-resizable-n:hover ,
-    .scrubber .ui-resizable-s:hover {
-      background: hsla(0,00%,10%,1);
-    }
-    #parallel-coordinates span.scrubber .ui-resizable-n {
-      top: 0px;
-    }
-    #parallel-coordinates span.scrubber .ui-resizable-s {
-      bottom: 0px;
-    }
-    #footer {
-      padding: 60px;
-      color: #888;
-      font-size:13px;
-    }
-  </style>
 </head>
 
 <body>
@@ -159,6 +69,9 @@
       'three': 'Three',
       'four': 'Four',
       'five': 'Five'
+    },
+    type: {
+      'four': 'category'
     },
     width: 760,
     height: 300,
