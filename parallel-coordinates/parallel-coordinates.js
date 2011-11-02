@@ -179,15 +179,9 @@
 
       _(filtered).each(function(d,k) {
         if (self.coloring) {
-          if (self.type[self.coloring] == 'category') {
-            var frac = Math.round(1489*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
-            ctx.strokeStyle = "hsla(" + frac + ",35%,50%," + (4/Math.sqrt(self.size)) + ")";
+          var frac = Math.round(250*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
 
-          } else {
-            var frac = Math.round(100*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
-
-            ctx.strokeStyle = "hsla(" + frac + ",35%,50%," + (3/Math.sqrt(self.size)) + ")";
-          }
+          ctx.strokeStyle = "hsla(" + frac + ",35%,50%," + (4.5/Math.sqrt(self.size)) + ")";
         }
 
         ctx.beginPath();
