@@ -4,6 +4,10 @@ function has(id, nuts) {
   });
 };
 
+function like(str, name) {
+  return name.indexOf("dried") != -1;
+};
+
 var transformed = _(vegetables)
   .chain()
   .filter(function(veg) {
@@ -13,7 +17,13 @@ var transformed = _(vegetables)
            has(307, nuts) && // Sodium
            has(291, nuts) && // Fiber
            has(401, nuts) && // Vitamin C
-           has(306, nuts);  // Potassium
+           has(306, nuts) && // Potassium
+           !(like('Powder', veg.name)) &&
+           !(like('powder', veg.name)) &&
+           !(like('Dehydrated', veg.name)) &&
+           !(like('dehydrated', veg.name)) &&
+           !(like('dried', veg.name)) &&
+           !(like('Dried', veg.name));
     })
   .map(function(veg) {
     return {
