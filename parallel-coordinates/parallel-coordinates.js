@@ -16,71 +16,213 @@
 
 (function($, undefined) {
 
+  // get mouse position relative to container
+  function getPos(el, e) {
+    var parentOffset = $(el).offset(); 
+    var relX = e.pageX - parentOffset.left;
+    var relY = e.pageY - parentOffset.top;
+    return {
+      x: relX,
+      y: relY
+    };
+  };
+
+  var Axis= Backbone.View.extend({
+    initialize: function(name, height, x, gutter) {
+      var self = this;
+      this.filtered = false;
+      var active = false;
+      this.height = height;
+      this.x = x;
+      this.temporary = false;
+      this.wrapper  = this.make('div', {
+        "class": 'axis',
+        "width": 16,
+        "height": height,
+        "rel": name,
+        "style": 'top: ' + (gutter.y-10) + 'px;' +
+          'left: ' + (x-3) + 'px;'
+      });
+      this.el = this.make('canvas', {
+        "class": 'axis-data',
+        "width": 16,
+        "height": height,
+        "rel": name,
+        "style": 'top: 0px;left: 0px;'
+      });
+      this.filter = this.make('canvas', {
+        "class": 'axis-filter',
+        "width": 16,
+        "height": height,
+        "style": 'top: 0px;left: 0px;'
+      });
+      this.wrapper.appendChild(this.el);
+      this.wrapper.appendChild(this.filter);
+      this.ctx = this.el.getContext('2d');
+      this.filterctx = this.filter.getContext('2d');
+      var events = {
+        'mousedown': function() { if (self.start) self.start(); },
+        'mousemove': function() { },
+        'mouseup': function() { if (self.stop) self.stop(); }
+      }
+      for (name in events)
+        this.el.addEventListener(name, events[name]);
+    },
+    addFilter: function(top,height) {
+      this.filtered = true;
+      this.filtered.top = top;
+      this.filtered.height = height;
+      this.filterctx.clearRect(0,0,16,this.height);
+      this.filterctx.fillStyle = "rgba(0,0,0,0.07)";
+      this.filterctx.fillRect(0,top,16,height);
+    }
+  });
+
+  
   window.Parallel_coordinates = Backbone.View.extend({
+    events: {
+      'mousedown': 'activate',
+      'mousemove': 'mousemove',
+      'mouseup': 'deactivate',
+      'click': 'resetOrDrag'
+    },
+    activate: function(e) {
+      this.active = true;
+      this.startdrag = getPos(this.el, e);
+    },
+    deactivate: function(e) {
+      var self = this;
+      var pos = getPos(this.el, e);
+      var start = this.startdrag;
+
+      // apply filter
+      _(this.axes).each(function(axis, key) {
+        var min = {},
+            max = {};
+        if (pos.x > start.x) {
+          min.x = start.x;
+          max.x = pos.x;
+        } else {
+          min.x = pos.x;
+          max.x = start.x;
+        }
+        if (pos.y > start.y) {
+          min.y = start.y;
+          max.y = pos.y;
+        } else {
+          min.y = pos.y;
+          max.y = start.y;
+        }
+        if ((axis.x > min.x) &&  (axis.x < max.x)) {
+          self.addFilter(self.getColumnRange(min.y-self.gutter.y, max.y-self.gutter.y, key));
+          axis.temporary = false;
+        } else if (axis.temporary) {
+          self.removeFilter(key);
+        }
+      });
+
+      this.selection.ctx.clearRect(0,0,this.width,this.height);
+      this.active = false;
+      this.startdrag = false;
+    },
+    mousemove: function(e) {
+      if (this.active) {
+        var self = this;
+        var pos = getPos(this.el, e);
+        var start = this.startdrag;
+        this.selection.ctx.clearRect(0,0,this.width,this.height);
+        this.selection.ctx.fillStyle = "rgba(55,55,55,0.03)";
+        this.selection.ctx.fillRect(start.x, start.y, pos.x-start.x, pos.y-start.y);
+        // apply filter
+        _(this.axes).each(function(axis, key) {
+          var min = {},
+              max = {};
+          if (pos.x > start.x) {
+            min.x = start.x;
+            max.x = pos.x;
+          } else {
+            min.x = pos.x;
+            max.x = start.x;
+          }
+          if (pos.y > start.y) {
+            min.y = start.y;
+            max.y = pos.y;
+          } else {
+            min.y = pos.y;
+            max.y = start.y;
+          }
+          if ((axis.x > min.x) &&  (axis.x < max.x)) {
+            self.addFilter(self.getColumnRange(min.y-self.gutter.y, max.y-self.gutter.y,key));
+            axis.temporary = true;
+          } else if (axis.temporary) {
+            self.removeFilter(key);
+          }
+        });
+      }
+    },
+    resetOrDrag: function(e) {
+      var self = this;
+      var pos = getPos(this.el, e);
+      // remove a filter
+      _(this.axes).each(function(axis, key) {
+        if (Math.abs(pos.x - axis.x) <= 12)
+          self.removeFilter(key);
+      });
+    },
+    initialize: function (options) {
+      var self = this;
+      this.axes = {};
+      this.filter = {};
+      this.active = false;
+      for (var k in options) {
+        this[k] = options[k];
+      }
+      this.model.bind('change:filter', function() {
+        var filters = self.model.get('filter');
+        for (key in filters) {
+        }
+      });
+      this.model.bind('change:filtered', function() {
+        self.update();    
+      });
+      this.render();
+    },
     render: function() {
       var self = this;
 
       this.canvas = {};
-      this.canvas.el = document.createElement('canvas');
-      this.canvas.el.width = this.width;
-      this.canvas.el.height = this.height;
+      this.selection = {};
+
+      this.canvas.el = this.make('canvas', {
+        width: this.width,
+        height: this.height
+      });
+
+      this.selection.el = this.make('canvas', {
+        width: this.width,
+        height: this.height
+      });
+
       this.canvas.ctx = this.canvas.el.getContext('2d');
+      this.selection.ctx = this.selection.el.getContext('2d');
+
       this.el.appendChild(this.canvas.el);
+      this.el.appendChild(this.selection.el);
 
       var scrubbers = [];
       var space = (this.width-this.gutter.x)/(this.columns.length-1);
 
       for (var i = 0; i < this.columns.length; i++) {
-        var s = this.make('span', {
-          "class": 'scrubber',
-          "style": 'top: ' + (this.gutter.y-10) + 'px;' +
-            'left: ' + ((i * space) - 7) + 'px;' +
-            'height: ' + (this.height-((this.gutter.y-10)*2)) + 'px'
-        });
-        this.el.appendChild(s);
-        var cheese = s.appendChild(this.make('span', {
-          "rel": this.columns[i],
-          "style": 'height: ' + (this.height-((this.gutter.y-10)*2)) + 'px'
-        }));
-        $(cheese).hover(function() {
+        var axis = this.axes[this.columns[i]] = new Axis(this.columns[i], this.height-2*(this.gutter.y-10), (i * space) - 7, this.gutter);
+
+        this.el.appendChild(axis.wrapper);
+
+        $(axis.wrapper).hover(function() {
           self.coloring = $(this).attr('rel');
           self.update();
         }, function() {
           self.update();
         });
-        $(cheese).draggable({
-          containment: $(s),
-          axis: 'y',
-          start: function(e, ui) {
-            $(this).addClass('active');
-            self.active = true;
-          },
-          drag: function(e, ui) {
-            self.addFilter(self.getColumnRange(this, self));
-          },
-          stop: function(e, ui) {
-            $(this).removeClass('active');
-            self.active = false;
-            self.addFilter(self.getColumnRange(this, self));
-          }
-        }).resizable({
-          containment: $(s),
-          handles: 'n,s',
-          start: function(e, ui) {
-            $(this).addClass('active');
-            self.active = true;
-          },
-          resize: function(e, ui) {
-            var range = self.getColumnRange(this, self);
-            var x = _(self.cols).detect(function(col) { return col.col == range.field; }).x;
-          },
-          stop: function(e, ui) {
-            $(this).removeClass('active');
-            self.active = false;
-            self.addFilter(self.getColumnRange(this, self));
-          }
-        });
-        scrubbers.push(s);
       };
 
       $(this.el).css({
@@ -93,24 +235,29 @@
 
     className: 'parallel-coordinates',
 
-    getColumnRange: function(scrubber, self) {
-      var column = $(scrubber).attr('rel');
-      var max = self.range[column].max;
-      var min = self.range[column].min;
-      var top = $(scrubber).position().top-8;
-      var height = $(scrubber).height()-7;
-      var step = (max - min) / ((self.height) - ((self.gutter.y)*2));
+    getColumnRange: function(top, bottom, column) {
+      var max = this.range[column].max;
+      var min = this.range[column].min;
+      var height = bottom-top;
+      var step = (max - min) / ((this.height) - ((this.gutter.y)*2));
       return {
         field: column,
         max: max - (top*step),
         min: max - ((top+height)*step),
         top: top,
+        bottom: bottom,
         height: height
       };
     },
     
     addFilter: function(filter) {
+      this.axes[filter.field].addFilter(filter.top+10,filter.height);
       this.model.add(filter);
+    },
+
+    removeFilter: function(key) {
+      this.axes[key].filterctx.clearRect(0,0,16,this.height);
+      this.model.remove(key);
     },
 
     update: function() {
@@ -173,6 +320,19 @@
         }
       };
 
+      // Draw dots
+      _(cols).each(function(col,i) {
+        self.axes[col].ctx.clearRect(0, 0, 16, self.height);
+      });
+      _(data).each(function(d,k) {
+        _(cols).each(function(col,i) {
+          var y = gutters(self.gutter.y, h, d, col);
+          self.axes[col].ctx.fillStyle = 'rgba(50,50,50,0.1)';
+          self.axes[col].ctx.fillRect(5, y-41, 2, 2);
+        });
+      });
+
+      // Draw lines
       if (line_stroke)
         ctx.strokeStyle = line_stroke;
         ctx.fillStyle = line_stroke;
@@ -205,14 +365,6 @@
         });
         ctx.stroke();
       });
-    },
-
-    initialize: function (options) {
-      this.filter = {};
-      for (var k in options) {
-        this[k] = options[k];
-      }
-      this.render();
     }
   });
 })(jQuery);

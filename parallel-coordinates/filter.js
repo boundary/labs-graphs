@@ -40,9 +40,9 @@
       this.trigger('change:filter');  // why necessary?
     },
 
-    remove: function(name) {
+    remove: function(key) {
       newFilter = this.get('filter');
-      delete newFilter[name];
+      delete newFilter[key];
       this.set({filter: newFilter});
       this.trigger('change:filter');  // why necessary?
     },

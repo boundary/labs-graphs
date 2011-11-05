@@ -42,6 +42,8 @@
 
   var dimensions = new Filter();
 
+  dimensions.set({data: vegetables});
+
   var parallel = new Parallel_coordinates ({
     title: 'Multidimensional Query - Parallel Coordinates',
     model: dimensions,
@@ -93,12 +95,8 @@
     }
   });
 
-  dimensions.set({data: vegetables});
-
-  dimensions.bind('change:filtered', function() {
-    parallel.update();    
-  });
   parallel.update();
+  slicky.update();
 
   </script>
   <div id="footer">
