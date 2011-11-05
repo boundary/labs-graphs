@@ -27,7 +27,7 @@
     };
   };
 
-  var Axis= Backbone.View.extend({
+  var Axis = Backbone.View.extend({
     initialize: function(name, height, x, gutter) {
       var self = this;
       this.filtered = false;
@@ -328,7 +328,7 @@
         _(cols).each(function(col,i) {
           var y = gutters(self.gutter.y, h, d, col);
           self.axes[col].ctx.fillStyle = 'rgba(50,50,50,0.1)';
-          self.axes[col].ctx.fillRect(5, y-41, 2, 2);
+          self.axes[col].ctx.fillRect(8, y-41, 2, 2);
         });
       });
 
