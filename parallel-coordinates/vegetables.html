@@ -76,13 +76,13 @@
     model: dimensions,
     width: 1200,
     columns: [
-      'name',
-/*      'protein',
+//      'name',
+      'protein',
       'calcium',
       'sodium',
       'fiber',
       'vitaminc',
-      'potassium'*/
+      'potassium'
     ],
     alias: {
       'name': 'Name',
@@ -97,6 +97,10 @@
 
   parallel.update();
   slicky.update();
+  slicky.bind('columnsReordered', function(cols) {
+    parallel.columns = cols;
+    parallel.update()
+  });
 
   </script>
   <div id="footer">

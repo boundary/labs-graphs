@@ -35,7 +35,7 @@
       
       this.options = {
         enableCellNavigation: true,
-        enableColumnReorder: false
+        enableColumnReorder: true
       };
 
       this.dataView = new Slick.Data.DataView();
@@ -78,6 +78,10 @@
           self.grid.setOptions({enableAddRow:enableAddRow});
       });
 
+      this.grid.onColumnsReordered.subscribe(function(e,args) {
+        var columns = _(this.getColumns()).pluck('id');
+        self.trigger('columnsReordered', columns);
+      });
     },
     update: function() {
       var self = this;
