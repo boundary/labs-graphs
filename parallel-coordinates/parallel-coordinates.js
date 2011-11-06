@@ -91,6 +91,7 @@
       if (this.canvas == e.target) {
         this.active = true;
         this.startdrag = getPos(this.el, e);
+        this.startdrag.y =  this.startdrag.y;
       }
     },
     deactivate: function(e) {
@@ -109,7 +110,7 @@
           var min = pos.y;
           var max = start.y;
         }
-        var range = getColumnRange(min, max, this.height, this.name, this.range);
+        var range = getColumnRange(min-10, max-10, this.height-20, this.name, this.range);
         this.addFilter(range);
       }
     },
