@@ -44,38 +44,36 @@
   };
 
   var Axis = Backbone.View.extend({
-    initialize: function(name, height, x, gutter, model) {
+    events: {
+      'click .axis-data': 'removeFilter',
+      'mousedown .axis-data': 'activate',
+      'mousemove .axis-data': 'mousemove',
+      'mouseup': 'deactivate',
+      'mouseleave': 'deactivate'
+    },
+    initialize: function(opts) {
       var self = this;
-      this.name = name;
+      this.name = opts.name;
       this.filtered = false;
-      var active = false;
-      this.model = model;
+      this.active = false;
       this.top = 0;
-      this.height = height;
-      this.x = x;
+      this.height = opts.height;
+      this.x = opts.x;
       this.temporary = false;
-      this.wrapper  = this.make('div', {
-        "class": 'axis',
-        "width": 16,
-        "height": height,
-        "rel": name,
-        "style": 'top: ' + (gutter.y-10) + 'px;' +
-          'left: ' + (x-3) + 'px;'
-      });
-      this.el = this.make('canvas', {
+      this.canvas = this.make('canvas', {
         "class": 'axis-data',
-        "width": 16,
-        "height": height,
-        "rel": name,
+        "width": 40,
+        "height": this.height,
+        "rel": this.name,
         "style": 'top: 0px;left: 0px;'
       });
       this.filter = this.make('div', {
         "class": 'axis-filter',
-        "style": 'top: 0px;left: 0px;height:' + height + 'px;'
+        "style": 'top: 0px;height:0px;'
       });
-      this.wrapper.appendChild(this.el);
-      this.wrapper.appendChild(this.filter);
-      this.ctx = this.el.getContext('2d');
+      this.el.appendChild(this.canvas);
+      this.el.appendChild(this.filter);
+      this.ctx = this.canvas.getContext('2d');
       $(this.filter).draggable({
         containment: $(self.el),
         axis: 'y',
@@ -88,14 +86,32 @@
           self.addFilter(range);
         }
       })
-      var events = {
-        'mousedown': function() { if (self.start) self.start(); },
-        'mousemove': function() { },
-        'click': function() { self.removeFilter() },
-        'mouseup': function() { if (self.stop) self.stop(); }
+    },
+    activate: function(e) {
+      if (this.canvas == e.target) {
+        this.active = true;
+        this.startdrag = getPos(this.el, e);
       }
-      for (name in events)
-        this.el.addEventListener(name, events[name]);
+    },
+    deactivate: function(e) {
+      this.active = false;
+      this.startdrag = false;
+    },
+    mousemove: function(e) {
+      if (this.active) {
+        var pos = getPos(this.el, e);
+        var start = this.startdrag;
+        // apply filter
+        if (pos.y > start.y) {
+          var min = start.y;
+          var max = pos.y;
+        } else {
+          var min = pos.y;
+          var max = start.y;
+        }
+        var range = getColumnRange(min, max, this.height, this.name, this.range);
+        this.addFilter(range);
+      }
     },
     addFilter: function(filter) {
       var self = this;
@@ -104,16 +120,16 @@
       $(this.filter).css({
         'height': filter.height,
         'top': self.top
-      });
+      }).addClass('active');
       this.model.add(filter);
     },
     removeFilter: function() {
       var self = this;
       this.filtered = false;
       $(this.filter).css({
-        'height': self.height,
+        'height': 0,
         'top': 0
-      });
+      }).removeClass('active');
       this.model.remove(this.name);
     }
   });
@@ -251,15 +267,28 @@
       var space = (this.width-this.gutter.x)/(this.columns.length-1);
 
       for (var i = 0; i < this.columns.length; i++) {
-        var axis = this.axes[this.columns[i]] = new Axis(this.columns[i], this.height-2*(this.gutter.y-10), (i * space) - 7, this.gutter, this.model);
+        var axis = this.axes[this.columns[i]] = new Axis({
+          name: this.columns[i],
+          height: this.height-2*(this.gutter.y-10),
+          x: (i * space),
+          gutter: this.gutter,
+          model: this.model,
+          el: this.make('div', {
+                "class": 'axis',
+                "height": this.height-2*(this.gutter.y-10),
+                "rel": this.columns[i],
+                "style": 'top: ' + (this.gutter.y-10) + 'px;' +
+                  'left: ' + ((i * space)-20) + 'px;'
+              })
+        });
 
-        this.el.appendChild(axis.wrapper);
+        this.el.appendChild(axis.el);
 
-        $(axis.wrapper).hover(function() {
+        $(axis.el).hover(function() {
           self.coloring = $(this).attr('rel');
           self.update();
         }, function() {
-          self.update();
+          //self.update();
         });
       };
 
@@ -327,7 +356,7 @@
           x: space*i
         });
         ctx.fillStyle = "hsla(0,0%,30%,0.05)";
-        ctx.fillRect(space*i-1, self.gutter.y-12, 2, h-(2*self.gutter.y)+24);
+        //ctx.fillRect(space*i-1, self.gutter.y-12, 2, h-(2*self.gutter.y)+24);
         ctx.fillStyle = text_fill;
         ctx.font = "bold 12px Helvetica";
         ctx.fillText(name, space*i, 12);
@@ -345,13 +374,19 @@
 
       // Draw dots
       _(cols).each(function(col,i) {
-        self.axes[col].ctx.clearRect(0, 0, 16, self.height);
+        self.axes[col].ctx.clearRect(0, 0, 40, self.height);
+        self.axes[col].ctx.fillStyle = 'rgba(80,80,80,0.15)';
       });
       _(data).each(function(d,k) {
         _(cols).each(function(col,i) {
           var y = gutters(self.gutter.y, h, d, col);
-          self.axes[col].ctx.fillStyle = 'rgba(50,50,50,0.1)';
-          self.axes[col].ctx.fillRect(7, y-40, 3, 1);
+          /*
+          if (self.coloring) {
+            var frac = Math.round(250*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
+            self.axes[col].ctx.fillStyle = "hsla(" + frac + ",35%,50%,0.6)";
+          }
+          */
+          self.axes[col].ctx.fillRect(18, y-41, 3, 3);
         });
       });
 
@@ -363,7 +398,6 @@
       _(filtered).each(function(d,k) {
         if (self.coloring) {
           var frac = Math.round(250*(self.range[self.coloring].max-d[self.coloring])/self.range[self.coloring].size); 
-
           ctx.strokeStyle = "hsla(" + frac + ",35%,50%," + (4.5/Math.sqrt(self.size)) + ")";
         }
 

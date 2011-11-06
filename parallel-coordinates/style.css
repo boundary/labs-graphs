@@ -43,16 +43,19 @@ body {
 #parallel-coordinates .axis {
   width: 40px;
 }
+#parallel-coordinates .axis-data:hover {
+  background: rgba(55,55,55,0.02);
+}
 .axis-data {
-  left: 12px;
-  width: 16px;
   z-index: 9;
 }
 .axis-filter {
   left: 12px;
   width: 16px;
-  background: rgba(55,55,55,0.06);
   z-index: 10;
+}
+.axis-filter.active {
+  background: rgba(55,55,55,0.1);
 }
 #footer {
   padding: 60px;
