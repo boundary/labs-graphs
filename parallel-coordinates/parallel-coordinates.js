@@ -45,7 +45,7 @@
 
   var Axis = Backbone.View.extend({
     events: {
-      'click .axis-data': 'removeFilter',
+      'dblclick .axis-data': 'removeFilter',
       'mousedown .axis-data': 'activate',
       'mousemove .axis-data': 'mousemove',
       'mouseup': 'deactivate',
@@ -78,11 +78,11 @@
         containment: $(self.el),
         axis: 'y',
         drag: function(e, ui) {
-          var range = getColumnRange($(this).position().top, $(this).position().top + $(this).height(), self.height, self.name, self.range);
+          var range = getColumnRange($(this).position().top-10, $(this).position().top-10 + $(this).height(), self.height-20, self.name, self.range);
           self.addFilter(range);
         },
         stop: function(e, ui) {
-          var range = getColumnRange($(this).position().top, $(this).position().top + $(this).height(), self.height, self.name, self.range);
+          var range = getColumnRange($(this).position().top-10, $(this).position().top-10 + $(this).height(), self.height-20, self.name, self.range);
           self.addFilter(range);
         }
       })
