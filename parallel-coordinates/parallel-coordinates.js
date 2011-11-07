@@ -387,7 +387,7 @@
             self.axes[col].ctx.fillStyle = "hsla(" + frac + ",35%,50%,0.6)";
           }
           */
-          self.axes[col].ctx.fillRect(18, y-41, 3, 3);
+          self.axes[col].ctx.fillRect(18.5, y-41.5, 2, 2);
         });
       });
 
