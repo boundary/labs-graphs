@@ -411,10 +411,10 @@
           if (i == 0) {
             ctx.moveTo(x, y);
           } else {
-            // ctx.lineTo(space*i, gutters(gut, h, d, col));
-            var cp1x = x - 0.65*(x-x0);
+            // ctx.lineTo(x, y);
+            var cp1x = x - 0.7*(x-x0);
             var cp1y = y0;
-            var cp2x = x - 0.35*(x-x0);
+            var cp2x = x - 0.3*(x-x0);
             var cp2y = y;
             ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
           }
