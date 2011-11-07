@@ -76,7 +76,7 @@
     model: dimensions,
     width: 1200,
     columns: [
-//      'name',
+      'name',
       'protein',
       'calcium',
       'sodium',
@@ -86,18 +86,19 @@
     ],
     alias: {
       'name': 'Name',
-      'protein': 'Protein',
-      'calcium': 'Calcium',
-      'sodium': 'Sodium',
-      'fiber': 'Fiber',
-      'vitaminc': 'Vitamin C',
-      'potassium': 'Potassium'
+      'protein': 'Protein (g)',
+      'calcium': 'Calcium (mg)',
+      'sodium': 'Sodium (mg)',
+      'fiber': 'Fiber (g)',
+      'vitaminc': 'Vitamin C (mg)',
+      'potassium': 'Potassium (mg)'
     }
   });
 
   parallel.update();
   slicky.update();
   slicky.bind('columnsReordered', function(cols) {
+    var cols = _(cols).reject(function(col) { return col == 'name'});
     parallel.columns = cols;
     parallel.update()
   });
