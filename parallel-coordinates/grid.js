@@ -35,7 +35,7 @@
       
       this.options = {
         enableCellNavigation: true,
-        enableColumnReorder: true
+        enableColumnReorder: false
       };
 
       this.dataView = new Slick.Data.DataView();
